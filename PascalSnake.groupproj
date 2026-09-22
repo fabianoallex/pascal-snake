@@ -1,0 +1,43 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{E4D8A372-2555-4238-A0D6-10838640ED45}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="PascalSnake.dproj">
+            <Dependencies/>
+        </Projects>
+                <Projects Include="tests\Unit\SnakeUnitTests.dproj">
+            <Dependencies/>
+        </Projects>
+    <!-- SCAFFOLD:PROJECTS -->
+    </ItemGroup>
+    <Target Name="PascalSnake">
+        <MSBuild Projects="PascalSnake.dproj"/>
+    </Target>
+    <Target Name="PascalSnake:Clean">
+        <MSBuild Projects="PascalSnake.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PascalSnake:Make">
+        <MSBuild Projects="PascalSnake.dproj" Targets="Make"/>
+    </Target>
+        <Target Name="SnakeUnitTests">
+        <MSBuild Projects="tests\Unit\SnakeUnitTests.dproj"/>
+    </Target>
+    <Target Name="SnakeUnitTests:Clean">
+        <MSBuild Projects="tests\Unit\SnakeUnitTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SnakeUnitTests:Make">
+        <MSBuild Projects="tests\Unit\SnakeUnitTests.dproj" Targets="Make"/>
+    </Target>
+    <!-- SCAFFOLD:TARGETS -->
+    <Target Name="Build">
+        <CallTarget Targets="PascalSnake;SnakeUnitTests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="PascalSnake:Clean;SnakeUnitTests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="PascalSnake:Make;SnakeUnitTests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

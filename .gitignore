@@ -1,0 +1,28 @@
+# Lazarus / FPC
+lib/
+backup/
+*.lps
+*.compiled
+*.ppu
+*.o
+*.or
+*.res
+*.exe
+*.dbg
+
+# Delphi
+Win32/
+Win64/
+__history/
+__recovery/
+*.dcu
+*.local
+*.identcache
+*.dsk
+*.stat
+*.~*
+*.dproj.local
+*.groupproj.local
+
+# Test output
+dunitx-results.xml
