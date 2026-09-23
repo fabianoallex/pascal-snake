@@ -56,6 +56,12 @@ The agent found these gaps while working. They're written up in detail, with evi
 - **`.res` collision.** A `.dpr` and a `.lpr` with the same name in the same folder share `PascalSnake.res`, so each IDE overwrites the other's resource. The fix was to rename the Lazarus program to `PascalSnakeLCL`.
 - **Double DPI scaling.** A `CreateNew` form sized with `MulDiv(..., Screen.PixelsPerInch, 96)` gets scaled a second time by the LCL. It showed up in a screenshot at 125% and was fixed with `Scaled := False`.
 
+### Follow-up: acceptance run and scope
+
+After the skill was updated from this feedback, the original prompt was run again, unchanged, in a fresh Claude Code session. The results are in [`SKILL_FEEDBACK.md`](SKILL_FEEDBACK.md#acceptance-run-1-2026-09-23-after-commit-8996c9c).
+
+The skill owner then decided that the skill covers **console, backend and library** projects. The GUI findings from this game stay in this repo as observations and don't become part of the skill.
+
 ## Project layout
 
 ```

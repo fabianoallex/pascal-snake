@@ -5,6 +5,55 @@
 
 Every item below comes from something that actually happened in that session, and each one cites a file in this repo you can inspect. Nothing is speculative. Items are ordered by how much improvisation they forced. Where a fix is proposed, treat it as a suggestion. The skill's own rule applies: *link to real code, state trade-offs, don't invent.*
 
+> **Read the next section first.** After this feedback was written, the skill owner made a scope decision (2026-09-23) that overrides the priorities in the original items below.
+
+## Scope decision and current priorities (2026-09-23)
+
+**Decision (skill owner):** the skill targets **console, backend and library** projects, which is the owner's actual Pascal work. VCL/LCL GUI isn't a goal. This project is a GUI app only because a game made a clear demo. Its GUI findings come from one toy project in an area the owner won't keep working in, so the skill can't keep them verified over time. They stay **here, in this repo, as observations**, and don't go into the skill as maintained knowledge.
+
+**Why:** the skill's credibility rests on *"every claim links to real, verified code"*, and its strongest material comes from five production backend projects. GUI material that nobody maintains would go stale with the same confident tone, and it costs context for every agent that loads the skill. The acceptance run below also showed the skill's backend core working the first time, while all the friction was in GUI territory.
+
+### What to change in the skill
+
+**1. Add a *Scope* section to `SKILL.md`.** State that the focus is console/backend/libraries. GUI is covered only by the existing `references/forms-dfm-lfm.md` (evidence from `pascal-amqp-faa`'s samples), which isn't actively extended. Point to this repo as a GUI example whose `SKILL_FEEDBACK.md` records GUI observations the skill doesn't verify. Consider narrowing the skill's `description` trigger text so GUI-only questions don't pull it in by default. That's a judgment call; state the trade-off.
+
+**2. What to do with the GUI content already applied in commit `8996c9c`:**
+
+| Content | Action |
+|---|---|
+| Console → VCL/LCL conversion checklist (`project-scaffolding.md`) | **Keep.** Small and factual; it's a list of `.dproj`/`.lpi` fields, not behavior claims. |
+| *"A consequence of skipping form files: DPI scaling becomes your job"* (`forms-dfm-lfm.md`) | **Remove.** Replace it with a one-line pointer to item 5 below. It's a behavior claim from one project that nobody will re-verify. |
+| GUI encoding data point (`SKILL.md`, *Encoding*) | **Remove** or cut it down to a pointer here. |
+| `.res` collision (`SKILL.md` + `rtl-gotchas.md` *Resource files*) | **Keep.** It's generic (any `.dpr`/`.lpr` pair in one folder, console included), and short. |
+| `git clone -c core.longpaths=true` note for opcb (`forms-dfm-lfm.md`) | **Keep.** It's a one-paragraph tip tied to reference content that stays. |
+| `register` subcommand, indentation fix, wording fix | **Keep.** They're generic. |
+
+**3. Don't implement:** `new --gui`, or any new GUI gotcha (the keyboard finding from the acceptance run below included).
+
+**4. Next work, in priority order (all backend-relevant):**
+1. **Test-runner templates in `assets/`** (item 2 below): `DUnitXCompat.pas`, the DUnitX console runner `.dpr` **and its `.dproj`**, and the FPCUnit `.lpr` + `.lpi` with heaptrc enabled (`<Linking><Debugging><UseHeaptrc Value="True"/>`). Every backend project needs these, and they were the **only reason the acceptance run still had to clone a reference repo**. It even built the test `.dproj` by copying the app's `.dproj` in a script.
+2. **A scaffold subcommand for tests** that generates both mirrored runners from those templates and registers them with the existing `register` logic.
+3. **The "versions tested" table:** add Lazarus 4.0 (everything here held on 4.0).
+4. **Next acceptance run: use a console/backend prompt**, not this game, so it exercises the skill's actual scope. Example: *"create a Delphi/Lazarus console project for a small key-value store with persistence to a file, using this skill"*. Acceptance: no reference repo cloned, no generated file deleted, both mirrored suites green with 0 leaks, `verify_test_mirrors.py` clean.
+
+## Acceptance run #1 (2026-09-23), after commit `8996c9c`
+
+The original prompt was re-run unchanged in a **fresh headless Claude Code session** (Opus 5.5), in a new folder, fetching the updated skill from GitHub: 12.4 min, 87 turns, US$ 4.15. The FPC side was verified independently afterwards: game and tests build, **FPCUnit 25/25, heaptrc 0 unfreed blocks, `verify_test_mirrors.py` clean**. The Delphi side wasn't verified (CE has no CLI compiler).
+
+| # | Criterion (from the end of this file) | Result |
+|---|---|---|
+| 1 | No reference repo cloned for GUI project files / test runners | ❌ **Expected (deferred).** GUI project files came from the new conversion checklist, and opcb wasn't cloned. But the runners and `DUnitXCompat` still came from cloning `pascal-redis-faa`, and the test `.dproj` was built by copying the app's `.dproj`. |
+| 2 | No generated file deleted or hand-rewritten | ⚠️ **Partial.** Tests were wired with `register` (no throwaway files, correct indentation). But `new` still produced `Snake.Core.pas`, a console `.dpr` and `Snake.lpi`, all deleted or rewritten, and the `.lpg` was hand-edited. |
+| 3 | `.dpr`/`.lpr` don't share a `.res` | ✅ `Snake.dpr` + `SnakeLCL.lpr` from the start. |
+| 4 | Window fits the board at 125% | ✅ `Scaled := False` from the start; confirmed by an independent screenshot. |
+
+Findings from the run, recorded for completeness. Per the scope decision, **only the first one is backend-relevant**:
+
+- **`new` and the `.res` rule conflict (GUI-only, not actionable under the scope decision).** `new` names the `.dpr` and `.lpi` the same. Following the `.res` rule forces a GUI project to rename the Lazarus program, which orphans the generated `.lpi` and leaves the `.lpg` pointing at it. For console apps (one shared `.dpr`) there's no conflict.
+- **Keyboard input bug in the generated game (GUI observation, stays here).** The generated form (`CreateNew`, only a `TPaintBox` and a `TTimer`, `KeyPreview := True`) **ignored real keyboard input** under Lazarus 4.0/win32, while reacting to a `WM_KEYDOWN` posted directly to its window. Keyboard focus was on the form window (checked with `GetGUIThreadInfo`). Adding a single 1-pixel `TPanel` fixed it (tested on a throwaway copy). This repo's form has a `TPanel` status bar and never had the problem. The LCL-internal mechanism wasn't investigated, and Delphi/VCL behavior is unknown.
+- **Verification lesson (generic, worth one line in the skill if it ever documents UI/app verification):** the session's own check missed that keyboard bug. Simulated keys didn't reach the game, so it switched to `PostMessage(WM_KEYDOWN)`, the game responded, and it reported everything working. Posting messages skips the real input path, so verify with real input (`SendInput`/`keybd_event`).
+- **Agent-environment hazard (seen in both sessions, not a skill issue):** writing `$(BDS)\bin` from a Python heredoc turned `\b` into a backspace character inside the `.dproj`. It's one more argument for scaffold subcommands that edit project files, instead of agents editing them ad hoc.
+
 ## Toolchain and verification status
 
 | | Version | How it was verified |
